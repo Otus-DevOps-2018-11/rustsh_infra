@@ -23,16 +23,14 @@ Host someinternalhost
 где ключ `-W` означает создание туннеля.
 
 ### Данные для подключения
-bastion_IP = 35.210.23.56
+bastion_IP = 35.210.23.56  
 someinternalhost_IP = 10.132.0.3
 
 ## Домашнее задание № 6 (деплой тестового приложения)
 
 ### Данные для подключения:
-testapp_IP = 35.204.17.203
-
+testapp_IP = 35.204.17.203  
 testapp_port = 9292
-
 
 ### Выполнение стартового скрипта
 Для запуска скрипта `startup.sh` при создании ВМ необходимо в команду gcloud добавить ключ `--metadata-from-file startup-script=./startup.sh`
@@ -56,3 +54,13 @@ gcloud compute firewall-rules create default-puma-server \
   --allow tcp:9292 \
   --target-tags=puma-server
 ```
+
+## Домашнее задание № 7 (Сборка образов VM  при помощи Packer)
+
+Что сделано:
+1. Установлен packer.
+2. Созданы Application Default Credentials (ADC).
+3. Создан packer-шаблон ubuntu16.json, содержащий описание образа VM, который мы хотим создать, в нём указаны builders для характеристик машины, а также provisioners для установки Ruby и MongoDB при помощи скриптов. Сами скрипты nstall_ruby.sh и install_mongodb.sh добавлены в папку packer/scripts.
+4. При помощи packer создан образ в GCP, из него развёрнута виртуальная машина, на которой установлено и запущено приложение reddit.
+5. Создан файл variables.json, в котором заданы значения переменных для шаблона packer.
+6. В шаблоне заданы дополнительные опции builder для GCP.
