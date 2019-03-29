@@ -1,19 +1,19 @@
 provider "google" {
   version = "1.4.0"
-  project = "infra-226618"
-  region  = "europe-west1"
+  project = "${var.project}"
+  region  = "${var.region}"
 }
 
 resource "google_compute_instance" "app" {
   name         = "reddit-app"
   machine_type = "g1-small"
-  zone         = "europe-west1-b"
+  zone         = "${var.zone}"
   tags         = ["reddit-app"]
 
   # определение загрузочного диска
   boot_disk {
     initialize_params {
-      image = "reddit-base"
+      image = "${var.disk_image}"
     }
   }
 
@@ -27,14 +27,14 @@ resource "google_compute_instance" "app" {
   }
 
   metadata {
-    ssh-keys = "rustsh:${file("~/.ssh/rustsh.pub")}"
+    ssh-keys = "appuser:${file(var.public_key_path)}"
   }
 
   connection {
     type        = "ssh"
     user        = "rustsh"
     agent       = false
-    private_key = "${file("~/.ssh/rustsh")}"
+    private_key = "${file(var.private_key_path)}"
   }
 
   provisioner "file" {
