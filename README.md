@@ -115,3 +115,39 @@ gcloud compute firewall-rules create default-puma-server \
 7. В модуле с созданием правила файервола для сервера приложения в параметрах задано открытие 80-го порта.
 8. При помощи `ansible-vault` зашифрованы файлы с секретами, файл с мастер-ключом от него добавлен в .gitignore и ansible.cfg.
 9. Используя зашифрованные данные, посредством Ansible на удалённые хосты добавлены новые пользователи.
+
+## Домашнее задание № 13 (Разработка и тестирование Ansible ролей и плейбуков)
+
+Что сделано:
+1. В файле Vagrantfile описана локальная инфраструктура.
+2. Настроена совместимость между Vagrant внутри WSL и VirtualBox в Windows:
+    - в WSL и Windows установлена одинаковая версия Vagrant (2.0.2);
+    - в Windows путь до VirtualBox добавлен в PATH;
+    - в WSL заданы переменные окружения:
+        ```bash
+        $ export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS="1"
+        $ export PATH="$PATH:/mnt/c/Program Files/Oracle/VirtualBox"
+        $ export VAGRANT_WSL_WINDOWS_ACCESS_USER_HOME_PATH="/mnt/c/ansible"
+        ```
+    - в Vagrantfile в область настроек виртуальных машин добавлена строчка `v.customize [ "modifyvm", :id, "--uartmode1", "disconnected" ]` (без неё всё падает).
+3. Командой `vagrant up` созданы виртуальные машины.
+4. В Vagrantfile добавлен провижинер для dbserver.
+5. Чтобы в WSL можно было настраивать права командой `chmod`, диск C: перемонтирован с метаданными:
+    ```bash
+    $ sudo umount /mnt/c
+    $ sudo mount -t drvfs C: /mnt/c -o metadata
+    ```
+6. Чтобы Ansible выполнил плейбуки, настроены права для папки ansible и приватных ключей, созданных Vagrant'ом (выставлены более строгие).
+7. В плейбуки добавлена установка Python, переработана роль db.
+8. Аналогичные настройки сделаны для appserver.
+9. Параметризировано имя пользователя на удалённой машине.
+10. В WSL установлены Molecule и Testinfra.
+11. Командой `molecule init` в роли db создана заготовка для тестов, в файл test_default.py добавлены сами тесты.
+12. Чтобы Molecule из WSL заработал с VirtualBox в Windows, в файл molecule.yml в раздел platforms добавлен параметр provider_raw_config_args со значением `"customize [ 'modifyvm', :id, '--uartmode1', 'disconnected' ]"`.
+13. Командой `molecule create` создана тестовая машина, к ней командой `molecule converge` применена роль db и командой `molecule verify` запущены тесты.
+14. Добавлен тест для проверки того, что БД слушает порт 27017:
+    ```python
+    def test_mongo_listen_port(host):
+        assert host.socket("tcp://0.0.0.0:27017").is_listening
+    ```
+15. В плейбуках packer_db.yml и packer_app.yml таски заменены на роли db и app, в шаблонах Packer'а app.json и db.json добавлена информация о тегах и пути до ролей.
